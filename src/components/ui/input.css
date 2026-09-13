@@ -1,0 +1,63 @@
+.field { display: flex; flex-direction: column; gap: var(--sp-2); }
+
+.field__label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.field__wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--app-bg);
+  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.field__wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.field__wrap--error { border-color: var(--danger); }
+.field__wrap--error:focus-within { box-shadow: 0 0 0 3px var(--danger-soft); }
+
+.field__icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.field__input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: var(--text-md);
+  color: var(--text-primary);
+  border-radius: var(--r-md);
+}
+.field__input::placeholder { color: var(--text-muted); }
+
+.field__wrap .field__icon ~ .field__input { padding-left: 42px; }
+
+.field__right {
+  position: absolute;
+  right: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.field__error {
+  font-size: var(--text-sm);
+  color: var(--danger);
+  margin: 0;
+}
+.field__hint {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+}

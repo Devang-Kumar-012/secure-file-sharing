@@ -1,0 +1,87 @@
+.settings-page {
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  min-width: 0;
+}
+.settings-header { padding-bottom: var(--sp-6); border-bottom: 1px solid var(--border); }
+.settings-title {
+  font-size: clamp(var(--text-2xl), 5vw, var(--text-3xl));
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  margin: 0 0 var(--sp-2);
+}
+.settings-sub { font-size: var(--text-md); color: var(--text-muted); margin: 0; }
+
+.settings-card {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.settings-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.settings-card__title {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.settings-card__body {
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.settings-field { display: flex; flex-direction: column; gap: var(--sp-1); }
+.settings-label { font-size: var(--text-sm); font-weight: 600; color: var(--text-muted); }
+.settings-value {
+  font-size: var(--text-md);
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 500;
+  word-break: break-all;
+}
+.settings-value--mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  word-break: break-all;
+}
+
+.settings-error {
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--r-md);
+  font-size: var(--text-sm);
+  color: var(--danger);
+  font-weight: 500;
+}
+
+.password-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  transition: color var(--t-fast);
+}
+.password-toggle:hover { color: var(--text-primary); }
+
+@media (max-width: 480px) {
+  .settings-card__header { padding: var(--sp-3) var(--sp-4); }
+  .settings-card__body { padding: var(--sp-4); }
+}

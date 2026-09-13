@@ -1,132 +1,204 @@
-import { Check, CheckCircle2, FileArchive, FileSpreadsheet, FileText, FileUp, LoaderCircle, LockKeyhole, Presentation, ShieldCheck, UploadCloud, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useFileData } from '../data/useFileData.js'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Upload, X, FileCheck, ArrowRight, CloudUpload } from 'lucide-react'
+import { useFiles } from '../context/FilesContext'
+import { fmtBytes, getTypeLabel } from '../lib/fileUtils'
+import FileIcon from '../components/FileIcon.jsx'
+import Button from '../components/ui/Button.jsx'
 import './upload.css'
 
-const MAX_FILE_SIZE = 100 * 1024 * 1024
-const workflowSteps = ['Preparing file', 'Encrypting file', 'Verifying integrity', 'Securing file access']
-const supportedExtensions = new Set(['pdf', 'xlsx', 'pptx', 'zip', 'csv', 'doc', 'docx', 'png', 'jpg', 'jpeg'])
-const fileIcons = { pdf: FileText, xlsx: FileSpreadsheet, pptx: Presentation, zip: FileArchive, csv: FileSpreadsheet }
-const fileTypeLabels = { pdf: 'PDF Document', xlsx: 'Excel Spreadsheet', pptx: 'PowerPoint Presentation', zip: 'ZIP Archive', csv: 'CSV Dataset', doc: 'Word Document', docx: 'Word Document' }
-
-function formatFileSize(bytes) {
-    if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
+const MAX_SIZE = 500 * 1024 * 1024 // 500 MB
 
 function UploadFile() {
-    const { addFile } = useFileData()
-    const inputRef = useRef(null)
-    const [selectedFile, setSelectedFile] = useState(null)
-    const [dragActive, setDragActive] = useState(false)
-    const [error, setError] = useState('')
-    const [status, setStatus] = useState('idle')
-    const [workflowStep, setWorkflowStep] = useState(0)
+  const [file, setFile] = useState(null)
+  const [drag, setDrag] = useState(false)
+  const [error, setError] = useState('')
+  const [progress, setProgress] = useState(0)
+  const [uploading, setUploading] = useState(false)
+  const [uploaded, setUploaded] = useState(null)
+  const inputRef = useRef(null)
+  const progressRef = useRef(null)
+  const { uploadFile } = useFiles()
+  const navigate = useNavigate()
 
-    useEffect(() => {
-        if (status !== 'processing') return undefined
-
-        const stepTimers = workflowSteps.map((_, index) => window.setTimeout(() => setWorkflowStep(index), index * 550))
-        const completeTimer = window.setTimeout(() => {
-            if (selectedFile) {
-                addFile(selectedFile)
-                setStatus('complete')
-            }
-        }, workflowSteps.length * 550)
-
-        return () => {
-            stepTimers.forEach((timer) => window.clearTimeout(timer))
-            window.clearTimeout(completeTimer)
-        }
-    }, [addFile, selectedFile, status])
-
-    const validateFile = (file) => {
-        if (!file || file.size === 0) return 'This file is empty. Choose a file with content.'
-        if (file.size > MAX_FILE_SIZE) return 'This file is larger than the 100 MB demo limit.'
-        const extension = file.name.split('.').pop()?.toLowerCase()
-        if (!supportedExtensions.has(extension)) return 'This file type is not supported in the demo workflow.'
-        return ''
+  // Animate progress bar during upload
+  useEffect(() => {
+    if (uploading) {
+      setProgress(5)
+      let current = 5
+      progressRef.current = setInterval(() => {
+        // Advance quickly to 85%, then slow down to wait for actual completion
+        const increment = current < 60 ? 8 : current < 80 ? 2 : 0.5
+        current = Math.min(85, current + increment)
+        setProgress(Math.round(current))
+      }, 400)
+    } else {
+      clearInterval(progressRef.current)
     }
+    return () => clearInterval(progressRef.current)
+  }, [uploading])
 
-    const selectFile = (file) => {
-        const validationError = validateFile(file)
-        setError(validationError)
-        if (validationError) {
-            setSelectedFile(null)
-            return
-        }
-        setSelectedFile(file)
-        setStatus('idle')
-        setWorkflowStep(0)
+  function validateFile(f) {
+    if (!f) return 'No file selected.'
+    if (f.size === 0) return 'File is empty.'
+    if (f.size > MAX_SIZE) return `File is too large. Maximum size is ${fmtBytes(MAX_SIZE)}.`
+    return null
+  }
+
+  function pickFile(f) {
+    const err = validateFile(f)
+    if (err) { setError(err); return }
+    setError('')
+    setFile(f)
+  }
+
+  function onDrop(e) {
+    e.preventDefault()
+    setDrag(false)
+    const f = e.dataTransfer.files?.[0]
+    if (f) pickFile(f)
+  }
+
+  const onInputChange = useCallback(e => {
+    const f = e.target.files?.[0]
+    if (f) pickFile(f)
+    // Reset input so the same file can be re-selected after removal
+    e.target.value = ''
+  }, [])
+
+  async function handleUpload() {
+    if (!file || uploading) return
+    setError('')
+    setUploading(true)
+    try {
+      const result = await uploadFile(file)
+      setProgress(100)
+      // Brief pause so user sees 100% before the success screen
+      await new Promise(r => setTimeout(r, 400))
+      setUploaded(result)
+    } catch (err) {
+      setError(err.message || 'Upload failed. Please try again.')
+    } finally {
+      setUploading(false)
     }
+  }
 
-    const handleInputChange = (event) => {
-        selectFile(event.target.files?.[0])
-        event.target.value = ''
-    }
-
-    const handleDrop = (event) => {
-        event.preventDefault()
-        setDragActive(false)
-        selectFile(event.dataTransfer.files?.[0])
-    }
-
-    const resetUpload = () => {
-        setSelectedFile(null)
-        setError('')
-        setStatus('idle')
-        setWorkflowStep(0)
-    }
-
-    const startUpload = () => {
-        if (!selectedFile) return
-        setError('')
-        setStatus('processing')
-        setWorkflowStep(0)
-    }
-
-    const extension = selectedFile?.name.split('.').pop()?.toLowerCase()
-    const FileIcon = fileIcons[extension] || FileText
-    const selectedFileType = fileTypeLabels[extension] || selectedFile?.type || extension?.toUpperCase()
-
+  // Success state
+  if (uploaded) {
     return (
-        <main className="upload-page">
-            <section className="upload-intro">
-                <div><span className="upload-kicker">Secure workflow <i /> Demo simulation</span><h2>Upload a file</h2><p>Protect your document and prepare it for secure sharing.</p></div>
-                <div className="upload-intro__note"><ShieldCheck size={16} /><span>Security workflow simulated locally</span></div>
-            </section>
-
-            {status === 'complete' && selectedFile ? (
-                <section className="upload-success" role="status">
-                    <div className="upload-success__mark"><Check size={22} /></div>
-                    <span className="upload-kicker">Upload complete</span>
-                    <h3>File secured successfully.</h3>
-                    <p>{selectedFile.name} is protected and ready for the next access-control step.</p>
-                    <div className="upload-success__file"><FileIcon size={20} /><span><strong>{selectedFile.name}</strong><small>{selectedFileType} <i>·</i> {formatFileSize(selectedFile.size)}</small></span><CheckCircle2 size={17} /></div>
-                    <div className="upload-success__states"><span><CheckCircle2 size={15} /> Protected</span><span><CheckCircle2 size={15} /> Integrity verified</span><span><CheckCircle2 size={15} /> Ready for access control</span></div>
-                    <div className="upload-success__actions"><Link className="upload-action upload-action--primary" to="/files">View My Files <FileUp size={15} /></Link><button className="upload-action upload-action--secondary" type="button" onClick={resetUpload}>Upload Another <UploadCloud size={15} /></button><Link className="upload-action upload-action--text" to="/dashboard">Continue <span aria-hidden="true">→</span></Link></div>
-                    <p className="upload-disclaimer">AES-256 protection and integrity verification are simulated for this frontend prototype.</p>
-                </section>
-            ) : status === 'processing' ? (
-                <section className="upload-processing" aria-live="polite">
-                    <div className="upload-processing__heading"><div><span className="upload-kicker">Secure upload</span><h3>{workflowSteps[workflowStep]}...</h3><p>Preparing your file for the SecureShare workflow.</p></div><LoaderCircle className="upload-processing__spinner" size={23} /></div>
-                    <div className="upload-progress"><span style={{ width: `${((workflowStep + 1) / workflowSteps.length) * 100}%` }} /></div>
-                    <div className="upload-steps">{workflowSteps.map((step, index) => <div className={`upload-step ${index < workflowStep ? 'upload-step--done' : ''} ${index === workflowStep ? 'upload-step--current' : ''}`} key={step}><span>{index < workflowStep ? <Check size={13} /> : index === workflowStep ? <LoaderCircle size={13} /> : index + 1}</span><strong>{step}</strong><small>{index < workflowStep ? 'Complete' : index === workflowStep ? 'In progress' : 'Queued'}</small></div>)}</div>
-                    <p className="upload-processing__note"><LockKeyhole size={14} /> Security workflow simulated locally. No file leaves this browser.</p>
-                </section>
-            ) : (
-                <section className="upload-canvas">
-                    <div className="upload-canvas__main">
-                        <input ref={inputRef} className="upload-input" type="file" accept=".pdf,.xlsx,.pptx,.zip,.csv,.doc,.docx,.png,.jpg,.jpeg" onChange={handleInputChange} aria-label="Choose a file to upload" />
-                        {selectedFile ? <div className="upload-preview"><div className="upload-preview__top"><span className="upload-preview__label">Selected file</span><button className="icon-button" type="button" aria-label="Remove selected file" onClick={resetUpload}><X size={17} /></button></div><div className="upload-preview__file"><span className="upload-preview__icon"><FileIcon size={24} /></span><span><strong title={selectedFile.name}>{selectedFile.name}</strong><small>{selectedFileType} <i>·</i> {formatFileSize(selectedFile.size)}</small></span><CheckCircle2 size={18} /></div><div className="upload-preview__actions"><button className="upload-action upload-action--primary" type="button" onClick={startUpload}>Secure Upload <LockKeyhole size={15} /></button><button className="upload-action upload-action--text" type="button" onClick={() => inputRef.current?.click()}>Change file</button></div></div> : <button className={`upload-dropzone ${dragActive ? 'upload-dropzone--active' : ''}`} type="button" onClick={() => inputRef.current?.click()} onDragEnter={(event) => { event.preventDefault(); setDragActive(true) }} onDragOver={(event) => { event.preventDefault(); setDragActive(true) }} onDragLeave={(event) => { event.preventDefault(); setDragActive(false) }} onDrop={handleDrop}><span className="upload-dropzone__icon"><UploadCloud size={24} /></span><strong>{dragActive ? 'Release to select your file' : 'Drop a file here or choose one'}</strong><span>PDF, spreadsheets, presentations, archives and images</span><small>Maximum demo file size: 100 MB</small></button>}
-                        {error ? <p className="upload-error" role="alert"><X size={15} /> {error}</p> : null}
-                    </div>
-                    <aside className="upload-canvas__aside"><span className="upload-aside__line" /><span className="upload-kicker">What happens next</span><h3>A clear path to protected sharing.</h3><div className="upload-aside__steps"><span><b>01</b> File prepared</span><span><b>02</b> Security workflow simulated</span><span><b>03</b> Ready for access control</span></div><p><ShieldCheck size={14} /> Your file stays in this browser for this academic prototype.</p></aside>
-                </section>
-            )}
-        </main>
+      <div className="upload-page">
+        <div className="upload-success">
+          <FileCheck size={48} color="var(--success)" />
+          <h2 className="upload-success__title">Upload complete</h2>
+          <p className="upload-success__name">{uploaded.name}</p>
+          <p className="upload-success__size">{fmtBytes(uploaded.size)}</p>
+          <div className="upload-success__actions">
+            <Button variant="primary" size="lg" onClick={() => navigate('/files')}>
+              View My Files <ArrowRight size={18} />
+            </Button>
+            <Button variant="secondary" size="md" onClick={() => {
+              setFile(null); setUploaded(null); setProgress(0)
+            }}>
+              Upload another
+            </Button>
+          </div>
+        </div>
+      </div>
     )
+  }
+
+  return (
+    <div className="upload-page">
+      <div className="upload-header">
+        <h2 className="upload-title">Upload File</h2>
+        <p className="upload-sub">Files are stored privately — only you can access them.</p>
+      </div>
+
+      {error && (
+        <div className="upload-error">
+          <span>{error}</span>
+          <button onClick={() => setError('')} aria-label="Dismiss" style={{ marginLeft: 'auto', opacity: .7, display: 'flex' }}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {!file ? (
+        <div
+          className={`upload-dropzone ${drag ? 'upload-dropzone--active' : ''}`}
+          onDragOver={e => { e.preventDefault(); setDrag(true) }}
+          onDragLeave={e => { e.preventDefault(); setDrag(false) }}
+          onDrop={onDrop}
+          onClick={() => inputRef.current?.click()}
+          role="button"
+          tabIndex={0}
+          onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && inputRef.current?.click()}
+          aria-label="Click or drag to upload file"
+        >
+          <CloudUpload size={48} color={drag ? 'var(--accent)' : 'var(--text-muted)'} />
+          <p className="upload-dropzone__primary">
+            {drag ? 'Release to upload' : 'Drag a file here or click to browse'}
+          </p>
+          <p className="upload-dropzone__secondary">Any file type · Max {fmtBytes(MAX_SIZE)}</p>
+          <input
+            ref={inputRef}
+            type="file"
+            style={{ display: 'none' }}
+            onChange={onInputChange}
+            aria-hidden
+          />
+        </div>
+      ) : (
+        <div className="upload-preview">
+          <div className="upload-preview__file">
+            <FileIcon mimeType={file.type} name={file.name} size={36} />
+            <div className="upload-preview__info">
+              <p className="upload-preview__name">{file.name}</p>
+              <p className="upload-preview__meta">
+                {fmtBytes(file.size)} · {getTypeLabel(file.type, file.name)}
+              </p>
+            </div>
+            {!uploading && (
+              <button
+                className="upload-preview__remove"
+                onClick={() => { setFile(null); setProgress(0); setError('') }}
+                aria-label="Remove file"
+              >
+                <X size={18} />
+              </button>
+            )}
+          </div>
+
+          {uploading && (
+            <div className="upload-progress">
+              <div className="upload-progress__track">
+                <div className="upload-progress__fill" style={{ width: `${progress}%` }} />
+              </div>
+              <p className="upload-progress__label">{progress}%</p>
+            </div>
+          )}
+
+          <div className="upload-preview__actions">
+            <Button
+              variant="primary"
+              size="lg"
+              loading={uploading}
+              onClick={handleUpload}
+              disabled={uploading}
+            >
+              <Upload size={18} />
+              {uploading ? 'Uploading…' : 'Upload File'}
+            </Button>
+            {!uploading && (
+              <Button variant="ghost" size="md" onClick={() => { setFile(null); setProgress(0); setError('') }}>
+                Choose different file
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default UploadFile

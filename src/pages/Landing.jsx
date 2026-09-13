@@ -1,217 +1,243 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-    ArrowRight,
-    BadgeCheck,
-    Check,
-    CheckCircle2,
-    ChevronRight,
-    Clock3,
-    Download,
-    FileLock2,
-    KeyRound,
-    LockKeyhole,
-    Menu,
-    ShieldCheck,
-    Sparkles,
-    UsersRound,
-    X,
+  Shield, Upload, Search, Eye, Lock, Zap, ChevronRight,
+  Menu, X, Check, HardDrive, FileText, FileImage, FileArchive, File
 } from 'lucide-react'
-import Badge from '../components/ui/Badge.jsx'
-import Button from '../components/ui/Button.jsx'
-import './pages.css'
-
-const features = [
-    {
-        icon: FileLock2,
-        title: 'Encrypted Files',
-        description: 'Files are represented as protected before secure storage.',
-    },
-    {
-        icon: UsersRound,
-        title: 'Controlled Access',
-        description: 'Define who can access a shared file and what they can do.',
-    },
-    {
-        icon: KeyRound,
-        title: 'Secure Tokens',
-        description: 'Generate access tokens for controlled file sharing.',
-    },
-    {
-        icon: Clock3,
-        title: 'Expiring Access',
-        description: 'Limit access using expiration times and download limits.',
-    },
-]
-
-const steps = [
-    { number: '01', title: 'Upload', text: 'Choose a file and define its sharing context.' },
-    { number: '02', title: 'Protect', text: 'Mark it protected before it enters secure storage.' },
-    { number: '03', title: 'Share', text: 'Set permissions, expiry, and download limits.' },
-    { number: '04', title: 'Verify & Download', text: 'Confirm the token before authorized access.' },
-]
-
-function SecurityVisualization() {
-    return (
-        <div className="hero-visual" aria-label="Secure file sharing visualization">
-            <div className="hero-visual__grid" aria-hidden="true" />
-            <div className="hero-visual__halo hero-visual__halo--one" aria-hidden="true" />
-            <div className="hero-visual__halo hero-visual__halo--two" aria-hidden="true" />
-            <div className="visual-orbit visual-orbit--top"><LockKeyhole size={15} /> Encrypted</div>
-            <div className="visual-orbit visual-orbit--right"><BadgeCheck size={15} /> Verified</div>
-            <div className="visual-orbit visual-orbit--bottom"><KeyRound size={15} /> Token ready</div>
-            <div className="secure-file-card">
-                <div className="secure-file-card__topline">
-                    <span className="file-type-icon"><FileLock2 size={20} /></span>
-                    <Badge tone="success" icon={CheckCircle2}>Protected</Badge>
-                </div>
-                <div className="secure-file-card__name">Project_Report.pdf</div>
-                <div className="secure-file-card__meta">4.2 MB <span>•</span> Secured just now</div>
-                <div className="secure-file-card__progress">
-                    <span><ShieldCheck size={14} /> Secure storage</span>
-                    <strong>100%</strong>
-                </div>
-                <div className="secure-file-card__bar"><span /></div>
-            </div>
-            <div className="visual-token-card">
-                <span className="visual-token-card__icon"><KeyRound size={16} /></span>
-                <span><small>Access token</small><strong>SS-••••-7K2P</strong></span>
-                <Check size={16} />
-            </div>
-        </div>
-    )
-}
+import './landing.css'
 
 function Landing() {
-    const [menuOpen, setMenuOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
-    const closeMenu = () => setMenuOpen(false)
+  return (
+    <div className="landing">
+      {/* ── NAV ── */}
+      <nav className="lnav">
+        <div className="lnav__inner">
+          <Link to="/" className="lnav__brand">
+            <Shield size={22} /> SecureShare
+          </Link>
 
-    return (
-        <div className="landing-page">
-            <header className="landing-nav">
-                <Link className="landing-brand" to="/" onClick={closeMenu} aria-label="SecureShare home">
-                    <span className="landing-brand__mark"><ShieldCheck size={18} strokeWidth={2.4} /></span>
-                    <span>SecureShare</span>
-                </Link>
-                <button
-                    className="mobile-menu-toggle"
-                    type="button"
-                    onClick={() => setMenuOpen((open) => !open)}
-                    aria-expanded={menuOpen}
-                    aria-controls="landing-navigation"
-                    aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
-                >
-                    {menuOpen ? <X size={20} /> : <Menu size={20} />}
-                </button>
-                <nav id="landing-navigation" className={`landing-navigation ${menuOpen ? 'landing-navigation--open' : ''}`}>
-                    <a href="#features" onClick={closeMenu}>Features</a>
-                    <a href="#security" onClick={closeMenu}>Security</a>
-                    <a href="#how-it-works" onClick={closeMenu}>How It Works</a>
-                    <span className="landing-navigation__divider" aria-hidden="true" />
-                    <Link className="landing-nav__login" to="/login" onClick={closeMenu}>Log In</Link>
-                    <Button as={Link} to="/login" variant="primary" className="landing-nav__cta" onClick={closeMenu}>Get Started</Button>
-                </nav>
-            </header>
+          <div className={`lnav__links ${menuOpen ? 'lnav__links--open' : ''}`}>
+            <a href="#features" className="lnav__link" onClick={() => setMenuOpen(false)}>Features</a>
+            <a href="#security" className="lnav__link" onClick={() => setMenuOpen(false)}>Security</a>
+            <a href="#how-it-works" className="lnav__link" onClick={() => setMenuOpen(false)}>How It Works</a>
+            <Link to="/login" className="lnav__link" onClick={() => setMenuOpen(false)}>Sign In</Link>
+            <Link to="/signup" className="lnav__cta" onClick={() => setMenuOpen(false)}>Get Started</Link>
+          </div>
 
-            <main>
-                <section className="landing-hero page-section">
-                    <div className="landing-hero__content reveal-up">
-                        <div className="section-kicker"><span className="kicker-dot" /> Secure sharing, thoughtfully designed</div>
-                        <h1>Share Files.<br /><span>Keep Them Secure.</span></h1>
-                        <p className="landing-hero__description">Secure file sharing with encrypted storage, controlled access, and time-sensitive sharing.</p>
-                        <div className="landing-hero__actions">
-                            <Button as={Link} to="/login" variant="primary">Get Started <ArrowRight size={17} /></Button>
-                            <a className="text-link" href="#how-it-works">See How It Works <ChevronRight size={16} /></a>
-                        </div>
-                        <div className="landing-hero__note"><LockKeyhole size={14} /> Frontend prototype for secure sharing workflows</div>
-                    </div>
-                    <SecurityVisualization />
-                </section>
-
-                <section className="trust-strip" aria-label="Security capabilities">
-                    <div><LockKeyhole size={17} /><span>AES-256 Protected</span></div>
-                    <div><UsersRound size={17} /><span>Controlled Access</span></div>
-                    <div><KeyRound size={17} /><span>Secure Tokens</span></div>
-                    <div><Clock3 size={17} /><span>Time-Limited Sharing</span></div>
-                </section>
-
-                <section id="features" className="landing-section page-section">
-                    <div className="section-heading reveal-up">
-                        <div className="section-kicker">Core protections</div>
-                        <h2>Security built into every share.</h2>
-                        <p>This prototype makes each part of a secure sharing workflow clear, visible, and easy to understand.</p>
-                    </div>
-                    <div className="feature-grid">
-                        {features.map(({ icon: Icon, title, description }) => (
-                            <article className="feature-card reveal-up" key={title}>
-                                <span className="feature-card__icon"><Icon size={20} /></span>
-                                <h3>{title}</h3>
-                                <p>{description}</p>
-                                <span className="feature-card__line" aria-hidden="true" />
-                            </article>
-                        ))}
-                    </div>
-                </section>
-
-                <section id="how-it-works" className="landing-section workflow-section page-section">
-                    <div className="section-heading reveal-up">
-                        <div className="section-kicker">The workflow</div>
-                        <h2>From upload to authorized download.</h2>
-                        <p>A clear four-step path that keeps the owner in control at every stage.</p>
-                    </div>
-                    <div className="workflow-grid">
-                        {steps.map(({ number, title, text }, index) => (
-                            <div className="workflow-step reveal-up" key={number}>
-                                <div className="workflow-step__number">{number}</div>
-                                <div className="workflow-step__copy"><h3>{title}</h3><p>{text}</p></div>
-                                {index < steps.length - 1 ? <span className="workflow-step__connector" aria-hidden="true" /> : null}
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                <section id="security" className="security-section page-section">
-                    <div className="security-section__copy reveal-up">
-                        <div className="section-kicker">Control by design</div>
-                        <h2>Your files.<br /><span>Your control.</span></h2>
-                        <p>Make the intended recipient, permitted action, and access window visible before a download can happen.</p>
-                        <div className="security-section__checks">
-                            <span><CheckCircle2 size={16} /> Protected before sharing</span>
-                            <span><CheckCircle2 size={16} /> Authorized recipient access</span>
-                            <span><CheckCircle2 size={16} /> Token verified at download</span>
-                        </div>
-                    </div>
-                    <div className="security-flow reveal-up" aria-label="Secure file access flow">
-                        <div className="security-flow__node"><FileLock2 size={19} /><span>File</span></div>
-                        <ArrowRight className="security-flow__arrow" size={18} />
-                        <div className="security-flow__node security-flow__node--active"><ShieldCheck size={19} /><span>Protected</span><small>Ready</small></div>
-                        <ArrowRight className="security-flow__arrow" size={18} />
-                        <div className="security-flow__node"><UsersRound size={19} /><span>Access controlled</span></div>
-                        <ArrowRight className="security-flow__arrow" size={18} />
-                        <div className="security-flow__node"><KeyRound size={19} /><span>Token verified</span></div>
-                        <ArrowRight className="security-flow__arrow" size={18} />
-                        <div className="security-flow__node"><Download size={19} /><span>Download</span></div>
-                    </div>
-                </section>
-
-                <section className="landing-cta page-section reveal-up">
-                    <span className="landing-cta__icon"><Sparkles size={19} /></span>
-                    <h2>Ready to share securely?</h2>
-                    <p>Experience the SecureShare workflow.</p>
-                    <Button as={Link} to="/login" variant="primary">Get Started <ArrowRight size={17} /></Button>
-                </section>
-            </main>
-
-            <footer className="landing-footer">
-                <div className="landing-footer__brand"><span className="landing-brand__mark"><ShieldCheck size={17} /></span><span><strong>SecureShare</strong><small>Secure file sharing, simplified.</small></span></div>
-                <nav className="landing-footer__links" aria-label="Footer navigation">
-                    <a href="#features">Features</a><a href="#security">Security</a><a href="#how-it-works">How It Works</a><Link to="/login">Login</Link>
-                </nav>
-                <span className="landing-footer__meta">Academic Project • Secure File Sharing System</span>
-            </footer>
+          <button
+            className="lnav__toggle"
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label="Toggle menu"
+          >
+            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
-    )
+      </nav>
+
+      {/* ── HERO ── */}
+      <section className="hero">
+        <div className="hero__inner">
+          <div className="hero__text">
+            <div className="hero__kicker">
+              <Shield size={14} /> Private · Secure · Yours
+            </div>
+            <h1 className="hero__headline">
+              Your files.<br />
+              Your space.<br />
+              <span className="hero__accent">Your control.</span>
+            </h1>
+            <p className="hero__sub">
+              Upload, organise, and access your files from anywhere.
+              Every file is stored privately — only you can see them.
+            </p>
+            <div className="hero__ctas">
+              <Link to="/signup" className="btn btn--primary btn--xl">
+                Get Started Free <ChevronRight size={20} />
+              </Link>
+              <Link to="/login" className="btn btn--secondary btn--xl">
+                Sign In
+              </Link>
+            </div>
+          </div>
+
+          <div className="hero__visual">
+            <DashboardMockup />
+          </div>
+        </div>
+      </section>
+
+      {/* ── FEATURES ── */}
+      <section className="features" id="features">
+        <div className="features__inner">
+          <div className="section-label">Features</div>
+          <h2 className="section-title">Everything you need.</h2>
+          <div className="features__grid">
+            {[
+              { icon: Lock,     title: 'Private Storage',     desc: 'Files are stored privately in your account. No public access without your permission.' },
+              { icon: Zap,      title: 'Instant Access',      desc: 'Upload once, access anywhere. Files load quickly with signed secure URLs.' },
+              { icon: Search,   title: 'Search & Sort',       desc: 'Find any file instantly with real-time search and flexible sorting.' },
+              { icon: Eye,      title: 'Built-in Preview',    desc: 'Preview images, PDFs, text files, audio, and video directly in the browser.' },
+              { icon: Upload,   title: 'Drag & Drop Upload',  desc: 'Drop any file to upload instantly. Supports any file type up to 500 MB.' },
+              { icon: HardDrive,title: 'Storage Insights',    desc: 'See your real storage usage with a clear breakdown by file type.' },
+            ].map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="feature-card">
+                <div className="feature-card__icon">
+                  <Icon size={22} />
+                </div>
+                <h3 className="feature-card__title">{title}</h3>
+                <p className="feature-card__desc">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECURITY ── */}
+      <section className="security-section" id="security">
+        <div className="security-section__inner">
+          <div>
+            <div className="section-label">Security</div>
+            <h2 className="section-title">Built for privacy.</h2>
+            <p className="security-section__intro">
+              SecureShare uses Supabase Storage with Row Level Security policies
+              to ensure your files are completely private. No one else can access
+              what you upload.
+            </p>
+            <div className="security-checks">
+              {[
+                'Row Level Security enforced at database level',
+                'Private storage bucket — no public file access',
+                'Signed, time-limited URLs for file access',
+                'Authentication required for every operation',
+                'Your files are isolated from other users',
+              ].map(item => (
+                <div key={item} className="security-check">
+                  <Check size={16} color="var(--success)" strokeWidth={2.5} />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="security-section__visual">
+            <SecurityCard />
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section className="how-it-works" id="how-it-works">
+        <div className="how-it-works__inner">
+          <div className="section-label">How It Works</div>
+          <h2 className="section-title">Three steps.</h2>
+          <div className="steps">
+            {[
+              { n: '01', title: 'Create an account', desc: 'Sign up with your email. No credit card required.' },
+              { n: '02', title: 'Upload your files',  desc: 'Drag and drop or click to upload any file type.' },
+              { n: '03', title: 'Access anywhere',    desc: 'Preview, download, rename, or delete your files anytime.' },
+            ].map(({ n, title, desc }) => (
+              <div key={n} className="step">
+                <span className="step__num">{n}</span>
+                <h3 className="step__title">{title}</h3>
+                <p className="step__desc">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section className="final-cta">
+        <div className="final-cta__inner">
+          <h2 className="final-cta__headline">
+            Start storing<br />files securely.
+          </h2>
+          <p className="final-cta__sub">Free to use. No setup required.</p>
+          <Link to="/signup" className="btn btn--accent btn--xl">
+            Get Started <ChevronRight size={20} />
+          </Link>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="lfooter">
+        <div className="lfooter__inner">
+          <div className="lfooter__brand">
+            <Shield size={18} /> SecureShare
+          </div>
+          <p className="lfooter__copy">Built with React, Vite &amp; Supabase.</p>
+          <div className="lfooter__links">
+            <Link to="/login">Sign In</Link>
+            <Link to="/signup">Sign Up</Link>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
+
+// ── Dashboard mockup visual ──
+function DashboardMockup() {
+  const files = [
+    { icon: FileImage,   name: 'design-final.png',  size: '2.4 MB',  color: '#8b5cf6' },
+    { icon: FileText,    name: 'report-q3.pdf',      size: '1.1 MB',  color: '#ef4444' },
+    { icon: FileArchive, name: 'assets-v2.zip',      size: '18.2 MB', color: '#6b7280' },
+    { icon: File,        name: 'notes.txt',           size: '14 KB',   color: '#3b82f6' },
+  ]
+  return (
+    <div className="mockup">
+      <div className="mockup__bar">
+        <div className="mockup__dots">
+          <span /><span /><span />
+        </div>
+        <span className="mockup__title">My Files</span>
+      </div>
+      <div className="mockup__search">
+        <Search size={13} color="#8a8a8a" />
+        <span>Search files…</span>
+      </div>
+      <div className="mockup__files">
+        {files.map(({ icon: Icon, name, size, color }) => (
+          <div key={name} className="mockup__file">
+            <Icon size={18} color={color} />
+            <span className="mockup__fname">{name}</span>
+            <span className="mockup__fsize">{size}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mockup__storage">
+        <span>Storage</span>
+        <div className="mockup__sbar"><div className="mockup__sfill" /></div>
+        <span>21.7 MB / 1 GB</span>
+      </div>
+    </div>
+  )
+}
+
+// ── Security card visual ──
+function SecurityCard() {
+  return (
+    <div className="sec-card">
+      <div className="sec-card__header">
+        <Shield size={24} color="var(--success)" />
+        <span>Access Control</span>
+      </div>
+      <div className="sec-card__rows">
+        {[
+          ['RLS Policy',     'Enabled',  'success'],
+          ['Private Bucket', 'Active',   'success'],
+          ['Auth Required',  'Yes',      'success'],
+          ['Signed URLs',    '60s TTL',  'neutral'],
+        ].map(([label, value, tone]) => (
+          <div key={label} className="sec-card__row">
+            <span className="sec-card__label">{label}</span>
+            <span className={`sec-card__val sec-card__val--${tone}`}>{value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export default Landing

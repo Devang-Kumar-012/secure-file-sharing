@@ -1,7 +1,6 @@
-import { FileDataProvider } from '../data/FileDataContext.jsx'
-
+// AppShell is no longer used — FilesProvider is mounted directly in App.jsx
+// Kept to avoid breaking any stale import references
 function AppShell({ children }) {
-    return <FileDataProvider><div className="app-shell">{children}</div></FileDataProvider>
+  return children
 }
-
 export default AppShell

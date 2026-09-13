@@ -1,17 +1,19 @@
-import { LoaderCircle } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import './button.css'
 
-function Button({ as: Component = 'button', variant = 'primary', loading = false, className = '', children, ...props }) {
-    return (
-        <Component
-            className={`ui-button ui-button--${variant} ${className}`.trim()}
-            aria-busy={loading || undefined}
-            {...props}
-            disabled={Component === 'button' ? loading || props.disabled : undefined}
-        >
-            {loading ? <LoaderCircle className="ui-button__loader" size={17} aria-hidden="true" /> : null}
-            {children}
-        </Component>
-    )
+function Button({ as: Tag = 'button', variant = 'primary', size = 'md', loading = false, className = '', children, ...props }) {
+  const classes = ['btn', `btn--${variant}`, `btn--${size}`, className].filter(Boolean).join(' ')
+  return (
+    <Tag
+      className={classes}
+      aria-busy={loading || undefined}
+      {...props}
+      disabled={Tag === 'button' ? (loading || props.disabled) : undefined}
+    >
+      {loading && <Loader2 className="btn__spinner" size={16} aria-hidden />}
+      {children}
+    </Tag>
+  )
 }
 
 export default Button

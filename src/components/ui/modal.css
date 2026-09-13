@@ -1,0 +1,79 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  animation: overlay-in 0.18s ease;
+  /* Prevent content behind overlay from showing on mobile */
+  overflow-y: auto;
+}
+
+.modal {
+  background: var(--app-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  animation: modal-in 0.2s ease;
+  outline: none;
+  /* Ensure modal doesn't exceed viewport */
+  max-height: calc(100svh - 2 * var(--sp-4));
+  overflow-y: auto;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-5) var(--sp-5) 0;
+  gap: var(--sp-3);
+}
+
+.modal__title {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: var(--r-md);
+  color: var(--text-muted);
+  transition: background var(--t-fast), color var(--t-fast);
+  flex-shrink: 0;
+}
+.modal__close:hover { background: var(--surface); color: var(--text-primary); }
+
+.modal__body {
+  padding: var(--sp-5) var(--sp-5) var(--sp-5);
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modal-in {
+  from { transform: scale(.96) translateY(8px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .modal-overlay { padding: var(--sp-3); align-items: flex-end; }
+  .modal {
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    max-height: 90svh;
+  }
+  .modal__header { padding: var(--sp-4) var(--sp-4) 0; }
+  .modal__body { padding: var(--sp-4); }
+}

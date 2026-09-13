@@ -1,10 +1,12 @@
-function Badge({ tone = 'neutral', icon: Icon, children }) {
-    return (
-        <span className={`ui-badge ui-badge--${tone}`}>
-            {Icon ? <Icon size={13} aria-hidden="true" /> : null}
-            {children}
-        </span>
-    )
+import './badge.css'
+
+function Badge({ tone = 'neutral', icon: Icon, children, size = 'md' }) {
+  return (
+    <span className={`badge badge--${tone} badge--${size}`}>
+      {Icon && <Icon size={tone === 'sm' ? 11 : 13} aria-hidden />}
+      {children}
+    </span>
+  )
 }
 
 export default Badge
