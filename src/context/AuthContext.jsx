@@ -1,55 +1,103 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { supabase, supabaseReady } from '../lib/supabase'
 import {
-  getSession,
-  signUp as authSignUp,
-  signIn as authSignIn,
-  signOut as authSignOut,
-  updatePassword as authUpdatePassword,
+  getSession    as localGetSession,
+  signUp        as localSignUp,
+  signIn        as localSignIn,
+  signOut       as localSignOut,
+  updatePassword as localUpdatePassword,
 } from '../lib/localAuth'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser]     = useState(null)
+  const [user, setUser]       = useState(null)
   const [loading, setLoading] = useState(true)
+  const initialized           = useRef(false)
 
-  // Restore session from localStorage on mount
   useEffect(() => {
-    const session = getSession()
-    if (session) {
-      setUser({ id: session.userId, email: session.email })
+    if (supabaseReady) {
+      // ── Supabase auth ──────────────────────────────────────────────
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null)
+        if (!initialized.current) {
+          initialized.current = true
+          setLoading(false)
+        }
+      })
+      // Safety timeout in case onAuthStateChange never fires
+      const t = setTimeout(() => {
+        if (!initialized.current) { initialized.current = true; setLoading(false) }
+      }, 3000)
+      return () => { subscription.unsubscribe(); clearTimeout(t) }
+    } else {
+      // ── Local auth fallback ────────────────────────────────────────
+      const session = localGetSession()
+      if (session) setUser({ id: session.userId, email: session.email })
+      setLoading(false)
     }
-    setLoading(false)
   }, [])
 
+  // ── signUp ─────────────────────────────────────────────────────────────────
   async function signUp(email, password) {
-    const { user: u, session } = await authSignUp(email, password)
-    setUser({ id: u.id, email: u.email })
-    return { session }
+    if (supabaseReady) {
+      const { data, error } = await supabase.auth.signUp({ email, password })
+      if (error) throw error
+      // data.session is null when email confirmation is required
+      return { session: data.session, user: data.user }
+    } else {
+      return localSignUp(email, password)
+    }
   }
 
+  // ── signIn ─────────────────────────────────────────────────────────────────
   async function signIn(email, password) {
-    const { user: u } = await authSignIn(email, password)
-    setUser({ id: u.id, email: u.email })
+    if (supabaseReady) {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) throw error
+      return data
+    } else {
+      const result = await localSignIn(email, password)
+      setUser({ id: result.user.id, email: result.user.email })
+      return result
+    }
   }
 
+  // ── signOut ────────────────────────────────────────────────────────────────
   async function signOut() {
-    authSignOut()
-    setUser(null)
+    if (supabaseReady) {
+      await supabase.auth.signOut()
+    } else {
+      localSignOut()
+      setUser(null)
+    }
   }
 
-  // Forgot-password is not applicable for local auth — no email system.
-  async function resetPassword(_email) {
-    throw new Error('Password reset by email is not available in offline mode. Use Settings to change your password after signing in.')
+  // ── resetPassword ──────────────────────────────────────────────────────────
+  async function resetPassword(email) {
+    if (supabaseReady) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+      if (error) throw error
+    } else {
+      throw new Error('Password reset by email requires Supabase to be configured. Sign in and use Settings to change your password.')
+    }
   }
 
+  // ── updatePassword ─────────────────────────────────────────────────────────
   async function updatePassword(newPassword) {
-    if (!user) throw new Error('Not signed in.')
-    await authUpdatePassword(user.id, newPassword)
+    if (supabaseReady) {
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) throw error
+    } else {
+      if (!user) throw new Error('Not signed in.')
+      await localUpdatePassword(user.id, newPassword)
+    }
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut, resetPassword, updatePassword }}>
+    <AuthContext.Provider value={{ user, loading, supabaseReady, signUp, signIn, signOut, resetPassword, updatePassword }}>
       {children}
     </AuthContext.Provider>
   )
